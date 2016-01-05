@@ -1,4 +1,4 @@
-FROM ubuntu:15.10
+FROM java:7
 MAINTAINER Nicholas Harding <njh@well.ox.ac.uk>
 
 # install various libraries and software
@@ -21,8 +21,13 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     libfreetype6-dev \
     libxft-dev \
-    x11-apps
+    x11-apps \
+    libncurses5-dev  \
+    libncursesw5-dev \
+    bzip2 \
+    maven
 ENV DISPLAY :0
+
 
 # install fonts
 RUN apt-add-repository multiverse
@@ -40,7 +45,42 @@ RUN apt-get update -y && apt-get install -y r-base r-base-dev
 RUN R -e 'install.packages("ape", repos="http://cran.us.r-project.org")'
 
 # install BWA & SAMTOOLS
-RUN apt-get install -y samtools bwa
+RUN cd /opt
+RUN git clone https://github.com/lh3/bwa.git
+RUN git clone --branch=develop git://github.com/samtools/htslib.git
+RUN git clone --branch=develop git://github.com/samtools/bcftools.git
+RUN git clone --branch=develop git://github.com/samtools/samtools.git
+RUN cd bwa; make; make install
+RUN cd ../bcftools; make; make install
+RUN cd ../samtools; make; make install
+
+ENV PATH=$PATH:/opt
+
+# PICARD
+ENV ZIP=picard-tools-1.139.zip
+ENV URL=https://github.com/broadinstitute/picard/releases/download/1.139/
+ENV FOLDER=picard-tools-1.139
+ENV DST=/opt/
+RUN wget $URL/$ZIP -O $DST/$ZIP && \
+    unzip $DST/$ZIP -d $DST && \
+    rm $DST/$ZIP && \
+    cd $DST/$FOLDER && \
+    mv * .. && \
+    cd / && \
+    bash -c 'echo -e "#!/bin/bash\njava -jar '$DST'/picard.jar \$@" > '$DST'/picard' && \
+    chmod +x $DST/picard && \
+    rm -rf $DST/$FOLDER
+
+# GATK
+ENV FOLDER=gatk
+RUN git clone https://github.com/broadgsa/gatk-protected.git $DST/$FOLDER && \
+    cd $DST/$FOLDER && \
+    sed -i 's/import oracle.jrockit.jfr.StringConstantPool/\/\/import oracle.jrockit.jfr.StringConstantPool/g' ./public/gatk-tools-public/src/main/java/org/broadinstitute/gatk/tools/walkers/varianteval/VariantEval.java && \
+    mvn verify -P\!queue && \
+    bash -c 'echo -e "#!/bin/bash\njava -jar '$DST/$FOLDER'/target/GenomeAnalysisTK.jar  \$@" > '$DST'/GenomeAnalysisTK' && \
+    chmod +x $DST/GenomeAnalysisTK
+ENV PATH=/usr/lib/jvm/java-7-openjdk-amd64/bin:$PATH
+
 
 # HDF5
 RUN apt-get install -y libhdf5-dev libhdf5-serial-dev
