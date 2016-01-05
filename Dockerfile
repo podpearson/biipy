@@ -53,7 +53,7 @@ RUN git clone https://github.com/lh3/bwa.git
 RUN git clone --branch=develop git://github.com/samtools/htslib.git
 RUN git clone --branch=develop git://github.com/samtools/bcftools.git
 RUN git clone --branch=develop git://github.com/samtools/samtools.git
-RUN cd bwa; make; make install
+RUN cd bwa; make
 RUN cd ../bcftools; make; make install
 RUN cd ../samtools; make; make install
 
