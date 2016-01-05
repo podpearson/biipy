@@ -1,4 +1,4 @@
-FROM java:7
+FROM ubuntu:15.10
 MAINTAINER Nicholas Harding <njh@well.ox.ac.uk>
 
 # install various libraries and software
@@ -25,9 +25,12 @@ RUN apt-get update && apt-get install -y \
     libncurses5-dev  \
     libncursesw5-dev \
     bzip2 \
+    openjdk-7-jdk \
+    openjdk-7-jre \
     maven
 ENV DISPLAY :0
 
+ENV JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 
 # install fonts
 RUN apt-add-repository multiverse
