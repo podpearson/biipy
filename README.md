@@ -8,9 +8,8 @@ Includes a number of popular libraries and dependencies for genetic data analysi
 
 To run:
 
-    version=v1.1.0
-    image=cggh/biipy:$version
-    docker pull $image
+    version=v1.3.0
+    image=podpearson/biipy_rdp:$version
     XSOCK=/tmp/.X11-unix/X0
     docker run \
       -it \
@@ -18,7 +17,7 @@ To run:
       -v ${HOME}:/home \
       -v /data:/data \
       -v $XSOCK:$XSOCK \
-      -p 31778:8888 \
+      -p 38888:8888 \
       --name biipy_$version \
       --env "docker_image=$image" \
       $image
